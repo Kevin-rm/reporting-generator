@@ -155,6 +155,8 @@ Private Sub CreatePivotTables(recapSheet As Worksheet)
         Call AddDataField(gasCylinderFormatPivotTable, "Livrées4", "RC12 vendues")
         Call AddDataField(gasCylinderFormatPivotTable, "Livrées5", "B39 vendues")
         Call AddDataField(gasCylinderFormatPivotTable, "Livrées6", "RC39 vendues")
+        
+        .DataPivotField.caption = "PAR FORMAT DE BOUTEILLE"
     End With
 End Sub
 
@@ -175,6 +177,8 @@ Private Sub PivotTableCreationHelper( _
     
         Call AddDataField(pivotTable, "Volume", "Volume total")
         Call AddDataField(pivotTable, "Volume", "Pourcentage", "0.00%", xlPercentOfTotal)
+        
+        .DataPivotField.caption = "PAR " & UCase(pivotRowFieldName)
     End With
 End Sub
 
