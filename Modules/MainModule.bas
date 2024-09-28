@@ -5,6 +5,8 @@ Option Explicit
 ' - À partir de 800 pour celles destinées aux utilisateurs
 ' - À partir de 700 pour les erreurs internes et autres
 
+Public generatedPassword As String
+
 ' Coordonnées de la cellule \"B04 livrées\"
 Public startRowIndex As Long
 Public startColumnIndex As Long
@@ -22,6 +24,15 @@ Sub HandleUnexpectedError()
         "Source : " & Err.Source, _
         vbCritical _
     )
+End Sub
+
+Sub InitGeneratedPassword()
+    Static initialized As Boolean
+    
+    If initialized Then Exit Sub
+    generatedPassword = "uWpadfrH9NqmC5Pvyn3MwFjGRZJ6s8DhgtQeX7Ac4bKk2EYLBx"
+    
+    initialized = True
 End Sub
 
 Sub InitStartRowIndexAndStartColumnIndex()

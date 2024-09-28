@@ -84,10 +84,13 @@ Private Sub AddDataToSheets(form As ResellerForm)
     monthAutoFillCols = Array(2, 12, 15, 18, 21, 24, 27, 28) ' B, L, O, R, U, X, AA, AB
     colsWithMediumWeightLeftBorders = Array(10, 13, 16, 19, 22, 25, 28, 29, 38, 41)
     newRow = lastDataRow + 1
-
+    
+    Call InitGeneratedPassword
     For Each wsName In wsNames
         Set ws = ThisWorkbook.Sheets(wsName)
-        ws.Rows(newRow).Insert Shift:=xlDown, CopyOrigin:=xlFormatFromLeftOrAbove
+        
+        Call ws.Unprotect(generatedPassword)
+        Call ws.Rows(newRow).Insert(Shift:=xlDown, CopyOrigin:=xlFormatFromLeftOrAbove)
         
         If wsName = "RECAP" Then
             Call AutoFillCell(newRow, 2, previousCell, currentCell, ws) ' B
@@ -125,6 +128,10 @@ Private Sub AddDataToSheets(form As ResellerForm)
             End With
         Next col
         
+        ws.Columns("A:I").AutoFit
+        
+        If wsName <> "RECAP" Then Call ws.Protect(password:=generatedPassword)
+        
         Set ws = Nothing
     Next wsName
     
@@ -145,7 +152,9 @@ Private Sub UpdatePivotTablesDataRange()
     
     Set TCDSheet = ThisWorkbook.Sheets("TCD")
     Set recapSheet = ThisWorkbook.Sheets("RECAP")
+    
     Call FindLastDataRow(recapSheet, True)
+    Call TCDSheet.Unprotect(generatedPassword)
     
     Call InitStartRowIndexAndStartColumnIndex
     For Each pivotTable In TCDSheet.PivotTables
@@ -156,6 +165,9 @@ Private Sub UpdatePivotTablesDataRange()
         
         Call pivotTable.RefreshTable
     Next pivotTable
+    
+    Call recapSheet.Protect(generatedPassword)
+    Call TCDSheet.Protect(generatedPassword)
 End Sub
 
 Private Function GetSegmentsByResellerTypeName(resellerTypeName) As Collection

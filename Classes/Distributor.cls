@@ -116,6 +116,7 @@ Public Sub CreateWorkbook( _
     Next i
     Application.DisplayAlerts = True
     
+    Call ProtectWorkbook
     Call pWorkbook.SaveAs(fileName:=fileName, FileFormat:=xlOpenXMLWorkbookMacroEnabled)
     Call pWorkbook.Close(SaveChanges:=False)
     
@@ -233,6 +234,17 @@ Private Sub GenerateWorkbookContent(ByVal currentYear As Integer, recapSheet As 
     Next i
     
     lastDataRow = rowIndex - 1
+    
+    ' Déverrouillage des cellules de données
+    templateSheet.Range( _
+        "A" & startRowIndex & ":K" & lastDataRow & _
+        ",M" & startRowIndex & ":N" & lastDataRow & _
+        ",P" & startRowIndex & ":Q" & lastDataRow & _
+        ",S" & startRowIndex & ":T" & lastDataRow & _
+        ",V" & startRowIndex & ":W" & lastDataRow & _
+        ",Y" & startRowIndex & ":Z" & lastDataRow & _
+        ",AC" & startRowIndex & ":AN" & lastDataRow _
+    ).Locked = False
     
     Call FillConsignementAndVolumeCells(templateSheet, rowIndex, lastDataRow)
     Call CreateMonthSheets(templateSheet)
@@ -355,6 +367,17 @@ Private Sub ReformatSheet(ws As Worksheet)
         .Rows(startRowIndex - 1).Delete
         .Columns("A:I").AutoFit
     End With
+End Sub
+
+Private Sub ProtectWorkbook()
+    Dim ws As Worksheet
+    
+    Call InitGeneratedPassword
+    For Each ws In pWorkbook.Sheets
+        Call ws.Protect(password:=generatedPassword)
+    Next ws
+    
+    Call pWorkbook.Protect(password:=generatedPassword, Structure:=True)
 End Sub
 
 Private Sub ImportComponent(componentFileName As String)
