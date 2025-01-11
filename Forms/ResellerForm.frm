@@ -69,6 +69,7 @@ Private Sub AddDataToSheets(form As ResellerForm)
     Dim wsName As Variant
     Dim wsNames() As String
     Dim ws As Worksheet
+    Dim recapSheet As Worksheet
     Dim newRow As Long
     Dim monthAutoFillCols As Variant
     Dim col As Variant
@@ -77,7 +78,9 @@ Private Sub AddDataToSheets(form As ResellerForm)
     Dim currentCell As Range
     
     Call InitMonthNames
-    Call FindLastDataRow(ThisWorkbook.Sheets("RECAP"))
+    Call InitStartRowIndexAndStartColumnIndex
+    Set recapSheet = ThisWorkbook.Sheets("RECAP")
+    Call FindLastDataRow(recapSheet)
     
     wsNames = Split("RECAP," & Join(monthNames, ","), ",")
     
@@ -129,13 +132,14 @@ Private Sub AddDataToSheets(form As ResellerForm)
         Next col
         
         ws.Columns("A:I").AutoFit
+        Call CalculateSum(ws, startRowIndex - 1, newRow + 1)
         
         If wsName <> "RECAP" Then Call ws.Protect(password:=generatedPassword)
         
         Set ws = Nothing
     Next wsName
     
-    Call UpdatePivotTablesDataRange
+    Call UpdatePivotTablesDataRange(recapSheet)
 End Sub
 
 Private Sub AutoFillCell(ByVal newRow As Long, ByVal columnIndex As Variant, previousCell As Range, currentCell As Range, ws As Worksheet)
@@ -145,18 +149,15 @@ Private Sub AutoFillCell(ByVal newRow As Long, ByVal columnIndex As Variant, pre
     Call previousCell.AutoFill(Destination:=ws.Range(previousCell, currentCell), Type:=xlFillDefault)
 End Sub
 
-Private Sub UpdatePivotTablesDataRange()
-    Dim recapSheet As Worksheet
+Private Sub UpdatePivotTablesDataRange(recapSheet As Worksheet)
     Dim TCDSheet As Worksheet
     Dim pivotTable As pivotTable
     
     Set TCDSheet = ThisWorkbook.Sheets("TCD")
-    Set recapSheet = ThisWorkbook.Sheets("RECAP")
     
     Call FindLastDataRow(recapSheet, True)
     Call TCDSheet.Unprotect(generatedPassword)
     
-    Call InitStartRowIndexAndStartColumnIndex
     For Each pivotTable In TCDSheet.PivotTables
         Call pivotTable.ChangePivotCache(ThisWorkbook.PivotCaches.Create( _
             SourceType:=xlDatabase, _

@@ -310,7 +310,7 @@ Private Sub FillConsignementAndVolumeCells( _
         templateSheet.Range(initialVolumeCell.Address, templateSheet.Cells(lastRowIndex, colOffset + 1)).FillDown
     End If
     
-    Call CalculateSum(templateSheet, currentRowIndexValue)
+    Call CalculateSum(templateSheet, startRowIndex, currentRowIndexValue)
     Call ReformatSheet(templateSheet)
 End Sub
 
@@ -351,15 +351,8 @@ Private Sub DoRecap( _
         End If
     Next col
     
-    Call CalculateSum(recapSheet, currentRowIndexValue)
+    Call CalculateSum(recapSheet, startRowIndex, currentRowIndexValue)
     Call ReformatSheet(recapSheet)
-End Sub
-
-Private Sub CalculateSum(ws As Worksheet, ByVal currentRowIndexValue As Integer)
-    With ws
-        .Cells(currentRowIndexValue, startColumnIndex).Formula = "=SUM(J" & startRowIndex & ":J" & currentRowIndexValue - 1 & ")"
-        .Range(.Cells(currentRowIndexValue, startColumnIndex), .Cells(currentRowIndexValue, 40)).FillRight
-    End With
 End Sub
 
 Private Sub ReformatSheet(ws As Worksheet)

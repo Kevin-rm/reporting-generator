@@ -69,6 +69,13 @@ Sub FindLastDataRow(recapSheet As Worksheet, Optional update = False)
     initialized = True
 End Sub
 
+Sub CalculateSum(ws As Worksheet, ByVal currentStartRowIndex As Integer, ByVal actualLastRowIndex As Integer)
+    With ws
+        .Cells(actualLastRowIndex, startColumnIndex).Formula = "=SUM(J" & currentStartRowIndex & ":J" & actualLastRowIndex - 1 & ")"
+        .Range(.Cells(actualLastRowIndex, startColumnIndex), .Cells(actualLastRowIndex, 40)).FillRight
+    End With
+End Sub
+
 Sub ShowResellerForm()
     Call loadFormConfigs
     Call ResellerForm.Show
