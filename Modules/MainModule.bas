@@ -1,13 +1,13 @@
 Attribute VB_Name = "MainModule"
 Option Explicit
 
-' Normes sur les numéros des erreurs :
-' - À partir de 800 pour celles destinées aux utilisateurs
-' - À partir de 700 pour les erreurs internes et autres
+' Normes sur les numï¿½ros des erreurs :
+' - ï¿½ partir de 800 pour celles destinï¿½es aux utilisateurs
+' - ï¿½ partir de 700 pour les erreurs internes et autres
 
 Public generatedPassword As String
 
-' Coordonnées de la cellule \"B04 livrées\"
+' Coordonnï¿½es de la cellule \"B04 livrï¿½es\"
 Public startRowIndex As Long
 Public startColumnIndex As Long
 
@@ -30,7 +30,7 @@ Sub InitGeneratedPassword()
     Static initialized As Boolean
     
     If initialized Then Exit Sub
-    generatedPassword = "uWpadfrH9NqmC5Pvyn3MwFjGRZJ6s8DhgtQeX7Ac4bKk2EYLBx"
+    generatedPassword = "secret"
     
     initialized = True
 End Sub
