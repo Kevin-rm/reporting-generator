@@ -40,7 +40,7 @@ Public Sub LoadResellersFromSheet(ws As Worksheet)
     Dim resellerType As resellerType
     Dim Segment As Segment
     
-    lastRow = ws.Cells(ws.Rows.Count, 2).End(xlUp).row
+    lastRow = ws.Cells(ws.Rows.Count, 3).End(xlUp).row
     For i = 2 To lastRow
         Set Reseller = New Reseller
         
@@ -130,7 +130,6 @@ ErrorHandler:
         Set pWorkbook = Nothing
     End If
     
-    Debug.Print Err.Description
     Call Err.Raise(Err.Number, Err.Source, Err.Description)
 End Sub
 
@@ -153,6 +152,7 @@ Private Sub CreatePivotTables(recapSheet As Worksheet)
         TableDestination:=TCDWorksheet.Range("M1"), _
         TableName:="TCDFormatBouteille" _
     )
+    
     With gasCylinderFormatPivotTable
         Call AddDataField(gasCylinderFormatPivotTable, "B04 Livrées", "B04 vendues")
         Call AddDataField(gasCylinderFormatPivotTable, "B09 Livrées", "B09 vendues")
@@ -172,11 +172,12 @@ Private Sub PivotTableCreationHelper( _
     startCellString As String _
 )
     Dim pivotTable As pivotTable
-
+    
     Set pivotTable = pivotCache.CreatePivotTable( _
         TableDestination:=TCDWorksheet.Range(startCellString), _
         TableName:="TCD" & pivotRowFieldName _
     )
+    
     With pivotTable
         .PivotFields(UCase(pivotRowFieldName)).Orientation = xlRowField
     
