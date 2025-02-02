@@ -40,8 +40,8 @@ Sub InitStartRowIndexAndStartColumnIndex()
     
     If initialized Then Exit Sub
     
-    startRowIndex = 4
-    startColumnIndex = 10
+    startRowIndex = 3
+    startColumnIndex = 13
     
     initialized = True
 End Sub
@@ -64,15 +64,15 @@ Sub FindLastDataRow(recapSheet As Worksheet, Optional update = False)
     Static initialized As Boolean
     
     If initialized And update = False Then Exit Sub
-    lastDataRow = recapSheet.Cells(recapSheet.Rows.Count, "C").End(xlUp).row
+    lastDataRow = recapSheet.Cells(recapSheet.Rows.Count, "D").End(xlUp).row
     
     initialized = True
 End Sub
 
 Sub CalculateSum(ws As Worksheet, ByVal currentStartRowIndex As Integer, ByVal actualLastRowIndex As Integer)
     With ws
-        .Cells(actualLastRowIndex, startColumnIndex).Formula = "=SUM(J" & currentStartRowIndex & ":J" & actualLastRowIndex - 1 & ")"
-        .Range(.Cells(actualLastRowIndex, startColumnIndex), .Cells(actualLastRowIndex, 40)).FillRight
+        .Cells(actualLastRowIndex, startColumnIndex).Formula = "=SUM(M" & currentStartRowIndex & ":M" & actualLastRowIndex - 1 & ")"
+        .Range(.Cells(actualLastRowIndex, startColumnIndex), .Cells(actualLastRowIndex, 43)).FillRight
     End With
 End Sub
 
@@ -105,7 +105,7 @@ Private Sub loadFormConfigs()
     Call InitFormConfigSheet
     Set resellerTypeCollection = New Collection
     
-    start = 4
+    start = 2
     
     lastColumn = formConfigSheet.Cells(start, formConfigSheet.Columns.Count).End(xlToLeft).Column
     lastRow = formConfigSheet.Cells(formConfigSheet.Rows.Count, 1).End(xlUp).row
@@ -135,27 +135,10 @@ Private Sub loadFormConfigs()
             .AddItem resellerType.Name
         Next
     End With
-    Call FillComboBox(ResellerForm.ZoneComboBox, "B1")
     
     Exit Sub
 ErrorHandler:
     Call HandleUnexpectedError
     
     Exit Sub
-End Sub
-
-Private Sub FillComboBox(comboBox As comboBox, cellAddress As String)
-    Dim i As Integer
-    Dim items() As String
-    
-    items = Split(formConfigSheet.Range(cellAddress), ",")
-    With comboBox
-        .Clear
-        
-        For i = LBound(items) To UBound(items)
-            .AddItem Trim(items(i))
-        Next i
-        
-        .ListIndex = 0
-    End With
 End Sub
