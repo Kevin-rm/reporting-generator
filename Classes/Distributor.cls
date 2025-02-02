@@ -139,14 +139,6 @@ Private Sub CreatePivotTables(recapSheet As Worksheet)
     Dim pivotCache As pivotCache
     Dim gasCylinderFormatPivotTable As pivotTable
     
-    If lastDataRow <= 3 Then
-        Call Err.Raise( _
-            vbObjectError + 806, _
-            "CreatePivotTables", _
-            "Le nombre de revendeurs doit être au minimum 2 pour pouvoir créer un tableau croisé dynamique." _
-        )
-    End If
-    
     Set TCDWorksheet = pWorkbook.Sheets("TCD")
     Set pivotCache = pWorkbook.PivotCaches.Create( _
         SourceType:=xlDatabase, _
