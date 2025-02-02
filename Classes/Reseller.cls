@@ -10,12 +10,15 @@ Attribute VB_Exposed = False
 Option Explicit
 
 Private pName As String
+Private pCode As String
 Private pZone As String
 Private pSegment As Segment
-Private pCategory As String
 Private pCity As String
 Private pAddress As String
 Private pContact As String
+Private pCreatedAt As String
+Private pStatus As String
+Private pEstimatedVolume As Double
 
 Public Property Get Name() As String
     Name = pName
@@ -23,6 +26,14 @@ End Property
 
 Public Property Let Name(value As String)
     pName = value
+End Property
+
+Public Property Get Code() As String
+    Code = pCode
+End Property
+
+Public Property Let Code(value As String)
+    pCode = value
 End Property
 
 Public Property Get Zone() As String
@@ -39,14 +50,6 @@ End Property
 
 Public Property Let Segment(value As Segment)
     Set pSegment = value
-End Property
-
-Public Property Get Category() As String
-    Category = pCategory
-End Property
-
-Public Property Let Category(value As String)
-    pCategory = value
 End Property
 
 Public Property Get City() As String
@@ -71,4 +74,28 @@ End Property
 
 Public Property Let Contact(value As String)
     pContact = value
+End Property
+
+Public Property Get CreatedAt() As String
+    CreatedAt = pCreatedAt
+End Property
+
+Public Property Let CreatedAt(value As String)
+    pCreatedAt = value
+End Property
+
+Public Property Get Status() As String
+    Status = pStatus
+End Property
+
+Public Property Let Status(value As String)
+    pStatus = value
+End Property
+
+Public Property Get EstimatedVolume() As Double
+    EstimatedVolume = pEstimatedVolume
+End Property
+
+Public Property Let EstimatedVolume(value As Double)
+    pEstimatedVolume = value
 End Property

@@ -45,19 +45,22 @@ Public Sub LoadResellersFromSheet(ws As Worksheet)
         Set Reseller = New Reseller
         
         Set Segment = New Segment
-        Segment.Name = ws.Cells(i, 4).value
+        Segment.Name = ws.Cells(i, 5).value
         
         Set resellerType = New resellerType
-        resellerType.Name = ws.Cells(i, 3).value
+        resellerType.Name = ws.Cells(i, 4).value
         Segment.resellerType = resellerType
         
         Reseller.Zone = ws.Cells(i, 1).value
-        Reseller.Name = ws.Cells(i, 2).value
+        Reseller.Code = ws.Cells(i, 2).value
+        Reseller.Name = ws.Cells(i, 3).value
         Reseller.Segment = Segment
-        Reseller.Category = ws.Cells(i, 5).value
         Reseller.City = ws.Cells(i, 6).value
         Reseller.Address = ws.Cells(i, 7).value
         Reseller.Contact = ws.Cells(i, 8).value
+        Reseller.CreatedAt = ws.Cells(i, 9).value
+        Reseller.Status = ws.Cells(i, 10).value
+        Reseller.EstimatedVolume = ws.Cells(i, 11).value
         
         Call Me.AddReseller(Reseller)
     Next i
@@ -127,6 +130,7 @@ ErrorHandler:
         Set pWorkbook = Nothing
     End If
     
+    Debug.Print Err.Description
     Call Err.Raise(Err.Number, Err.Source, Err.Description)
 End Sub
 
@@ -135,10 +139,18 @@ Private Sub CreatePivotTables(recapSheet As Worksheet)
     Dim pivotCache As pivotCache
     Dim gasCylinderFormatPivotTable As pivotTable
     
+    If lastDataRow <= 3 Then
+        Call Err.Raise( _
+            vbObjectError + 806, _
+            "CreatePivotTables", _
+            "Le nombre de revendeurs doit être au minimum 2 pour pouvoir créer un tableau croisé dynamique." _
+        )
+    End If
+    
     Set TCDWorksheet = pWorkbook.Sheets("TCD")
     Set pivotCache = pWorkbook.PivotCaches.Create( _
         SourceType:=xlDatabase, _
-        SourceData:=recapSheet.Range("A2:AB" & lastDataRow - 1) _
+        SourceData:=recapSheet.Range("A1:AE" & lastDataRow - 1) _
     )
     
     Call PivotTableCreationHelper("Ville", pivotCache, TCDWorksheet, "A1")
@@ -150,12 +162,12 @@ Private Sub CreatePivotTables(recapSheet As Worksheet)
         TableName:="TCDFormatBouteille" _
     )
     With gasCylinderFormatPivotTable
-        Call AddDataField(gasCylinderFormatPivotTable, "Livrées", "B04 vendues")
-        Call AddDataField(gasCylinderFormatPivotTable, "Livrées2", "B09 vendues")
-        Call AddDataField(gasCylinderFormatPivotTable, "Livrées3", "B12 vendues")
-        Call AddDataField(gasCylinderFormatPivotTable, "Livrées4", "RC12 vendues")
-        Call AddDataField(gasCylinderFormatPivotTable, "Livrées5", "B39 vendues")
-        Call AddDataField(gasCylinderFormatPivotTable, "Livrées6", "RC39 vendues")
+        Call AddDataField(gasCylinderFormatPivotTable, "B04 Livrées", "B04 vendues")
+        Call AddDataField(gasCylinderFormatPivotTable, "B09 Livrées", "B09 vendues")
+        Call AddDataField(gasCylinderFormatPivotTable, "B12 Livrées", "B12 vendues")
+        Call AddDataField(gasCylinderFormatPivotTable, "RC12 Livrées", "RC12 vendues")
+        Call AddDataField(gasCylinderFormatPivotTable, "B39 Livrées", "B39 vendues")
+        Call AddDataField(gasCylinderFormatPivotTable, "RC39 Livrées", "RC39 vendues")
         
         .DataPivotField.caption = "PAR FORMAT DE BOUTEILLE"
     End With
@@ -176,8 +188,8 @@ Private Sub PivotTableCreationHelper( _
     With pivotTable
         .PivotFields(UCase(pivotRowFieldName)).Orientation = xlRowField
     
-        Call AddDataField(pivotTable, "Volume", "Volume total")
-        Call AddDataField(pivotTable, "Volume", "Pourcentage", "0.00%", xlPercentOfTotal)
+        Call AddDataField(pivotTable, "Volume réalisé (Kg)", "Volume total")
+        Call AddDataField(pivotTable, "Volume réalisé (Kg)", "Pourcentage", "0.00%", xlPercentOfTotal)
         
         .DataPivotField.caption = "PAR " & UCase(pivotRowFieldName)
     End With
@@ -209,6 +221,7 @@ Private Sub GenerateWorkbookContent(ByVal currentYear As Integer, recapSheet As 
     Set templateSheet = pWorkbook.Sheets("template")
     Set inventorySheet = pWorkbook.Sheets("Inventaire")
     
+    ' -- Inventaire --
     With inventorySheet
         .Range("A6").value = DateSerial(currentYear, 1, 1)
         .Range("A6").AutoFill Destination:=.Range("A6:A17"), Type:=xlFillValues
@@ -218,6 +231,7 @@ Private Sub GenerateWorkbookContent(ByVal currentYear As Integer, recapSheet As 
             cell.Errors(xlOmittedCells).Ignore = True
         Next cell
     End With
+    ' -- Inventaire --
     
     rowIndex = startRowIndex
     For i = 1 To pResellers.Count
@@ -237,13 +251,13 @@ Private Sub GenerateWorkbookContent(ByVal currentYear As Integer, recapSheet As 
     
     ' Déverrouillage des cellules de données
     templateSheet.Range( _
-        "A" & startRowIndex & ":K" & lastDataRow & _
-        ",M" & startRowIndex & ":N" & lastDataRow & _
+        "A" & startRowIndex & ":N" & lastDataRow & _
         ",P" & startRowIndex & ":Q" & lastDataRow & _
         ",S" & startRowIndex & ":T" & lastDataRow & _
         ",V" & startRowIndex & ":W" & lastDataRow & _
         ",Y" & startRowIndex & ":Z" & lastDataRow & _
-        ",AC" & startRowIndex & ":AN" & lastDataRow _
+        ",AB" & startRowIndex & ":AC" & lastDataRow & _
+        ",AF" & startRowIndex & ":AR" & lastDataRow _
     ).Locked = False
     
     Call FillConsignementAndVolumeCells(templateSheet, rowIndex, lastDataRow)
@@ -258,13 +272,16 @@ Private Sub InsertResellerRow(Reseller As Reseller, ws As Worksheet, ByVal curre
     With ws
         .Cells(currentRowIndexValue, 1).value = Reseller.Zone
         .Cells(currentRowIndexValue, 2).value = pName
-        .Cells(currentRowIndexValue, 3).value = Reseller.Name
-        .Cells(currentRowIndexValue, 4).value = Segment.resellerType.Name
-        .Cells(currentRowIndexValue, 5).value = Segment.Name
-        .Cells(currentRowIndexValue, 6).value = Reseller.Category
+        .Cells(currentRowIndexValue, 3).value = Reseller.Code
+        .Cells(currentRowIndexValue, 4).value = Reseller.Name
+        .Cells(currentRowIndexValue, 5).value = Segment.resellerType.Name
+        .Cells(currentRowIndexValue, 6).value = Segment.Name
         .Cells(currentRowIndexValue, 7).value = Reseller.City
         .Cells(currentRowIndexValue, 8).value = Reseller.Address
         .Cells(currentRowIndexValue, 9).value = Reseller.Contact
+        .Cells(currentRowIndexValue, 10).value = Reseller.CreatedAt
+        .Cells(currentRowIndexValue, 11).value = Reseller.Status
+        .Cells(currentRowIndexValue, 12).value = Reseller.EstimatedVolume
     End With
 End Sub
 
@@ -279,7 +296,7 @@ Private Sub FillConsignementAndVolumeCells( _
     Dim colOffset As Integer
     
     Set initialConsignementCell = templateSheet.Cells(startRowIndex, startColumnIndex + 2)
-    initialConsignementCell.Formula = "=IFERROR(J" & startRowIndex & " - K" & startRowIndex & ", """")"
+    initialConsignementCell.Formula = "=IFERROR(M" & startRowIndex & " - N" & startRowIndex & ", """")"
     
     With initialConsignementCell
         If lastRowIndex > startRowIndex Then
@@ -299,12 +316,12 @@ Private Sub FillConsignementAndVolumeCells( _
     
     ' Remplissement des cellules de la colonne \"Volume\"
     Set initialVolumeCell = templateSheet.Cells(startRowIndex, colOffset + 1)
-    initialVolumeCell.Formula = "=J" & startRowIndex & " * 4 + " & _
-                   "M" & startRowIndex & " * 9 + " & _
-                   "P" & startRowIndex & " * 12.5 + " & _
-                   "S" & startRowIndex & " * 39 + " & _
-                   "V" & startRowIndex & " * 12.5 + " & _
-                   "Y" & startRowIndex & " * 39"
+    initialVolumeCell.Formula = "=M" & startRowIndex & " * 4 + " & _
+                   "P" & startRowIndex & " * 9 + " & _
+                   "S" & startRowIndex & " * 12.5 + " & _
+                   "V" & startRowIndex & " * 39 + " & _
+                   "Y" & startRowIndex & " * 12.5 + " & _
+                   "AB" & startRowIndex & " * 39"
             
     If lastRowIndex > startRowIndex Then
         templateSheet.Range(initialVolumeCell.Address, templateSheet.Cells(lastRowIndex, colOffset + 1)).FillDown
@@ -336,8 +353,8 @@ Private Sub DoRecap( _
     Dim formulaString As String
     Dim monthSheet As Worksheet
     
-    For col = startColumnIndex To 40
-        If col >= 38 Then ' Les présentoirs ne se cumulent pas mais prennent la valeur du mois actuel
+    For col = startColumnIndex To 43
+        If col >= 41 Then ' Les présentoirs ne se cumulent pas mais prennent la valeur du mois actuel
             formulaString = "=INDIRECT(TEXT(TODAY(), ""mmmm"") & ""!L"" & ROW() & ""C"" & " & col & ", FALSE)"
         Else
             ' \"startRowIndex - 1\" car on a déjà reformaté les months sheets
@@ -358,7 +375,7 @@ End Sub
 Private Sub ReformatSheet(ws As Worksheet)
     With ws
         .Rows(startRowIndex - 1).Delete
-        .Columns("A:I").AutoFit
+        .Columns("A:L").AutoFit
     End With
 End Sub
 

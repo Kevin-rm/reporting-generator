@@ -1,7 +1,7 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} ResellerForm 
    Caption         =   "Formulaire revendeur"
-   ClientHeight    =   7716
+   ClientHeight    =   8568.001
    ClientLeft      =   108
    ClientTop       =   456
    ClientWidth     =   4932
@@ -61,7 +61,7 @@ Private Sub ValidateData()
     Call AssertNotBlank(TypeComboBox.value, "Le champ Type est obligatoire.")
     Call AssertNotBlank(SegmentComboBox.value, "Le champ Segment est obligatoire.")
     Call AssertNotBlank(CityTextBox.value, "Le champ Ville est obligatoire.")
-    Call AssertNotBlank(AdressTextBox.value, "Le champ Adresse est obligatoire.")
+    Call AssertNotBlank(AddressTextBox.value, "Le champ Adresse est obligatoire.")
     Call AssertNotBlank(ContactTextBox.value, "Le champ Contact est obligatoire.")
 End Sub
 
@@ -84,8 +84,8 @@ Private Sub AddDataToSheets(form As ResellerForm)
     
     wsNames = Split("RECAP," & Join(monthNames, ","), ",")
     
-    monthAutoFillCols = Array(2, 12, 15, 18, 21, 24, 27, 28) ' B, L, O, R, U, X, AA, AB
-    colsWithMediumWeightLeftBorders = Array(10, 13, 16, 19, 22, 25, 28, 29, 38, 41)
+    monthAutoFillCols = Array(1, 2, 15, 18, 21, 24, 27, 30, 31) ' A, B, O, R, U, X, AA, AD, AE
+    colsWithMediumWeightLeftBorders = Array(13, 16, 19, 22, 25, 28, 31, 32, 41, 44)
     newRow = lastDataRow + 1
     
     Call InitGeneratedPassword
@@ -96,10 +96,11 @@ Private Sub AddDataToSheets(form As ResellerForm)
         Call ws.Rows(newRow).Insert(Shift:=xlDown, CopyOrigin:=xlFormatFromLeftOrAbove)
         
         If wsName = "RECAP" Then
-            Call AutoFillCell(newRow, 2, previousCell, currentCell, ws) ' B
+            Call AutoFillCell(newRow, 1, previousCell, currentCell, ws) ' A (Zone)
+            Call AutoFillCell(newRow, 2, previousCell, currentCell, ws) ' B (distributeur)
             
-            ' J jusqu'à AN
-            For col = 10 To 40
+            ' M jusqu'à AQ
+            For col = startColumnIndex To 43
                 Call AutoFillCell(newRow, col, previousCell, currentCell, ws)
             Next col
         Else
@@ -111,15 +112,18 @@ Private Sub AddDataToSheets(form As ResellerForm)
         Set previousCell = Nothing
         Set currentCell = Nothing
         
-        ws.Cells(newRow, 1).value = form.ZoneComboBox.value
-        ws.Cells(newRow, 3).value = form.NameTextBox.value
-        ws.Cells(newRow, 4).value = form.TypeComboBox.value
-        ws.Cells(newRow, 5).value = form.SegmentComboBox.value
+        ws.Cells(newRow, 3).value = form.CodeTextBox.value
+        ws.Cells(newRow, 4).value = form.NameTextBox.value
+        ws.Cells(newRow, 5).value = form.TypeComboBox.value
+        ws.Cells(newRow, 6).value = form.SegmentComboBox.value
         ws.Cells(newRow, 7).value = form.CityTextBox.value
-        ws.Cells(newRow, 8).value = form.AdressTextBox.value
+        ws.Cells(newRow, 8).value = form.AddressTextBox.value
         ws.Cells(newRow, 9).value = form.ContactTextBox.value
+        ws.Cells(newRow, 10).value = Date
+        ws.Cells(newRow, 11).value = "Actif"
+        ws.Cells(newRow, 12).value = form.VolumeTextBox.value
         
-        With ws.Range(ws.Cells(newRow, 1), ws.Cells(newRow, 40))
+        With ws.Range(ws.Cells(newRow, 1), ws.Cells(newRow, 44))
             .Borders.LineStyle = xlContinuous
             .Borders.weight = xlThin
         End With
@@ -131,7 +135,7 @@ Private Sub AddDataToSheets(form As ResellerForm)
             End With
         Next col
         
-        ws.Columns("A:I").AutoFit
+        ws.Columns("A:L").AutoFit
         Call CalculateSum(ws, startRowIndex - 1, newRow + 1)
         
         If wsName <> "RECAP" Then Call ws.Protect(password:=generatedPassword)
@@ -161,7 +165,7 @@ Private Sub UpdatePivotTablesDataRange(recapSheet As Worksheet)
     For Each pivotTable In TCDSheet.PivotTables
         Call pivotTable.ChangePivotCache(ThisWorkbook.PivotCaches.Create( _
             SourceType:=xlDatabase, _
-            SourceData:=recapSheet.Range("A" & startRowIndex - 2 & ":AB" & lastDataRow) _
+            SourceData:=recapSheet.Range("A" & startRowIndex - 2 & ":AE" & lastDataRow) _
         ))
         
         Call pivotTable.RefreshTable
